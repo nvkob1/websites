@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>บันทึกรายรับรายจ่าย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Noto+Serif+Thai:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #16261f;
+    --paper: #f6f4ee;
+    --paper-2: #ece8dc;
+    --line: #d8d2c0;
+    --income: #1f6f54;
+    --income-soft: #e2ede6;
+    --expense: #8a3b2f;
+    --expense-soft: #f0e2dd;
+    --accent: #c98a2c;
+    --muted: #6b6455;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #ece7db;
+      --paper: #161710;
+      --paper-2: #1f2018;
+      --line: #33342a;
+      --income: #6fcda6;
+      --income-soft: #1c2b23;
+      --expense: #e3947f;
+      --expense-soft: #2c1f1c;
+      --accent: #e0ac54;
+      --muted: #948c78;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #ece7db;
+    --paper: #161710;
+    --paper-2: #1f2018;
+    --line: #33342a;
+    --income: #6fcda6;
+    --income-soft: #1c2b23;
+    --expense: #e3947f;
+    --expense-soft: #2c1f1c;
+    --accent: #e0ac54;
+    --muted: #948c78;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Sans Thai', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 28px 20px 60px; }
+  header { margin-bottom: 22px; }
+  h1 {
+    font-family: 'Noto Serif Thai', serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+    letter-spacing: 0.01em;
+  }
+  header p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
+  .balance-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px 20px;
+    margin-bottom: 18px;
+  }
+  .balance-label { font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; }
+  .balance-amount { font-family: 'Noto Serif Thai', serif; font-size: 2.4rem; font-weight: 700; line-height: 1.1; }
+  .balance-amount.neg { color: var(--expense); }
+  .balance-sub { display: flex; gap: 22px; margin-top: 16px; }
+  .balance-sub div span:first-child { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 2px; }
+  .balance-sub .in-amt { color: var(--income); font-weight: 600; font-size: 1.05rem; }
+  .balance-sub .out-amt { color: var(--expense); font-weight: 600; font-size: 1.05rem; }
+
+  form {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 22px;
+  }
+  .type-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+  .type-toggle button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .type-toggle button.active[data-type="income"] { background: var(--income-soft); color: var(--income); border-color: var(--income); }
+  .type-toggle button.active[data-type="expense"] { background: var(--expense-soft); color: var(--expense); border-color: var(--expense); }
+
+  .row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .row > * { flex: 1; }
+  input, select {
+    width: 100%;
+    padding: 11px 12px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.95rem;
+  }
+  input:focus, select:focus, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
+  .submit-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 9px;
+    border: none;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: inherit;
+    font-size: 0.98rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .submit-btn:hover { opacity: 0.9; }
+
+  .list-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .list-head h2 { font-family: 'Noto Serif Thai', serif; font-size: 1.15rem; margin: 0; }
+  .list-head button {
+    background: none; border: none; color: var(--muted); font-family: inherit;
+    font-size: 0.82rem; cursor: pointer; text-decoration: underline;
+  }
+
+  .entry {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--line);
+  }
+  .entry .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .entry.income .dot { background: var(--income); }
+  .entry.expense .dot { background: var(--expense); }
+  .entry .meta { flex: 1; min-width: 0; }
+  .entry .desc { font-size: 0.95rem; font-weight: 500; }
+  .entry .cat { font-size: 0.78rem; color: var(--muted); }
+  .entry .amt { font-weight: 700; font-size: 0.98rem; white-space: nowrap; }
+  .entry.income .amt { color: var(--income); }
+  .entry.expense .amt { color: var(--expense); }
+  .entry .del {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-size: 1.1rem; padding: 4px 6px; line-height: 1;
+  }
+  .entry .del:hover { color: var(--expense); }
+
+  .empty { text-align: center; color: var(--muted); padding: 30px 0; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>บันทึกรายรับรายจ่าย</h1>
+    <p>บันทึกทุกรายการ เห็นยอดคงเหลือได้ทันที</p>
+  </header>
+
+  <div class="balance-card">
+    <div class="balance-label">ยอดคงเหลือ</div>
+    <div class="balance-amount" id="balanceAmount">฿0</div>
+    <div class="balance-sub">
+      <div><span>รายรับรวม</span><span class="in-amt" id="totalIn">฿0</span></div>
+      <div><span>รายจ่ายรวม</span><span class="out-amt" id="totalOut">฿0</span></div>
+    </div>
+  </div>
+
+  <form id="entryForm">
+    <div class="type-toggle">
+      <button type="button" data-type="income" class="active">รายรับ</button>
+      <button type="button" data-type="expense">รายจ่าย</button>
+    </div>
+    <div class="row">
+      <div>
+        <label for="amount">จำนวนเงิน (บาท)</label>
+        <input type="number" id="amount" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required>
+      </div>
+      <div>
+        <label for="date">วันที่</label>
+        <input type="date" id="date" required>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label for="desc">รายการ</label>
+        <input type="text" id="desc" placeholder="เช่น ค่าข้าวเที่ยง" required>
+      </div>
+      <div>
+        <label for="cat">หมวดหมู่</label>
+        <select id="cat"></select>
+      </div>
+    </div>
+    <button type="submit" class="submit-btn">บันทึกรายการ</button>
+  </form>
+
+  <div class="list-head">
+    <h2>รายการล่าสุด</h2>
+    <button type="button" id="clearAll">ล้างทั้งหมด</button>
+  </div>
+  <div id="entryList"></div>
+</div>
+
+<script>
+  const CATS = {
+    income: ['เงินเดือน', 'ธุรกิจ', 'ของขวัญ', 'อื่นๆ'],
+    expense: ['อาหาร', 'เดินทาง', 'ที่พัก', 'ช้อปปิ้ง', 'บิล', 'สุขภาพ', 'บันเทิง', 'อื่นๆ']
+  };
+  let currentType = 'income';
+  let entries = [];
+
+  try {
+    const saved = localStorage.getItem('money-tracker-entries');
+    if (saved) entries = JSON.parse(saved);
+  } catch (e) { console.error('โหลดข้อมูลไม่สำเร็จ', e); }
+
+  function save() {
+    try { localStorage.setItem('money-tracker-entries', JSON.stringify(entries)); }
+    catch (e) { console.error('บันทึกข้อมูลไม่สำเร็จ', e); }
+  }
+
+  function fmt(n) {
+    return '฿' + Number(n).toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  function populateCats() {
+    const sel = document.getElementById('cat');
+    sel.innerHTML = CATS[currentType].map(c => `<option value="${c}">${c}</option>`).join('');
+  }
+
+  document.querySelectorAll('.type-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.type-toggle button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentType = btn.dataset.type;
+      populateCats();
+    });
+  });
+
+  document.getElementById('date').valueAsDate = new Date();
+  populateCats();
+
+  document.getElementById('entryForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const amount = parseFloat(document.getElementById('amount').value);
+    const date = document.getElementById('date').value;
+    const desc = document.getElementById('desc').value.trim();
+    const cat = document.getElementById('cat').value;
+    if (!amount || amount <= 0 || !desc) return;
+
+    entries.unshift({ id: Date.now(), type: currentType, amount, date, desc, cat });
+    save();
+    render();
+    e.target.reset();
+    document.getElementById('date').valueAsDate = new Date();
+    document.querySelectorAll('.type-toggle button').forEach(b => b.classList.toggle('active', b.dataset.type === currentType));
+  });
+
+  document.getElementById('clearAll').addEventListener('click', () => {
+    if (entries.length && confirm('ล้างรายการทั้งหมด? ไม่สามารถกู้คืนได้')) {
+      entries = [];
+      save();
+      render();
+    }
+  });
+
+  function render() {
+    const inTotal = entries.filter(e => e.type === 'income').reduce((s, e) => s + e.amount, 0);
+    const outTotal = entries.filter(e => e.type === 'expense').reduce((s, e) => s + e.amount, 0);
+    const balance = inTotal - outTotal;
+
+    const balEl = document.getElementById('balanceAmount');
+    balEl.textContent = fmt(balance);
+    balEl.classList.toggle('neg', balance < 0);
+    document.getElementById('totalIn').textContent = fmt(inTotal);
+    document.getElementById('totalOut').textContent = fmt(outTotal);
+
+    const list = document.getElementById('entryList');
+    if (!entries.length) {
+      list.innerHTML = '<div class="empty">ยังไม่มีรายการ เริ่มบันทึกรายการแรกได้เลย</div>';
+      return;
+    }
+    list.innerHTML = entries.map(e => `
+      <div class="entry ${e.type}">
+        <span class="dot"></span>
+        <div class="meta">
+          <div class="desc">${escapeHtml(e.desc)}</div>
+          <div class="cat">${escapeHtml(e.cat)} · ${formatDate(e.date)}</div>
+        </div>
+        <div class="amt">${e.type === 'income' ? '+' : '-'}${fmt(e.amount)}</div>
+        <button class="del" data-id="${e.id}" aria-label="ลบรายการ">✕</button>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('.del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        entries = entries.filter(e => e.id !== Number(btn.dataset.id));
+        save();
+        render();
+      });
+    });
+  }
+
+  function formatDate(d) {
+    const dt = new Date(d + 'T00:00:00');
+    return dt.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  render();
+</script>
+</body>
+</html>
