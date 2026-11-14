@@ -4,4 +4,4 @@
 
 [money-tracker.html](https://nvkob1.github.io/websites/money-tracker.html)
 
-[chess_game.html](https://nvkob1.github.io/websites/hess_game.html)
+[chess_game.html](https://nvkob1.github.io/websites/chess_game.html)
