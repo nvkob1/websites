@@ -1,0 +1,369 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Dictation Drill</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Sarabun:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow working column, like a desk card. Quiz card on top, word list below. */
+:root {
+  --bg: #eef2f6;
+  --surface: #ffffff;
+  --fg: #14212c;
+  --muted: #5a6b7a;
+  --line: #d5dde5;
+  --accent: #0b6e8f;
+  --accent-fg: #ffffff;
+  --good: #1b7a4b;
+  --good-bg: #e3f4ea;
+  --bad: #b3261e;
+  --bad-bg: #fbe8e6;
+  --font-display: "Bricolage Grotesque", "Sarabun", system-ui, sans-serif;
+  --font-body: "Sarabun", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1820; --surface: #17232e; --fg: #e6edf3; --muted: #93a4b3; --line: #2a3a48;
+    --accent: #4cc3e6; --accent-fg: #06222c; --good: #5fd391; --good-bg: #153326; --bad: #ff8a80; --bad-bg: #3a1d1b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1820; --surface: #17232e; --fg: #e6edf3; --muted: #93a4b3; --line: #2a3a48;
+  --accent: #4cc3e6; --accent-fg: #06222c; --good: #5fd391; --good-bg: #153326; --bad: #ff8a80; --bad-bg: #3a1d1b;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 17px; line-height: 1.55;
+  padding-block: 24px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+h1 { font-family: var(--font-display); font-size: 2rem; line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--font-display); font-size: 1.25rem; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); margin: 4px 0 0; }
+button { font: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--line); padding: 4px; border-radius: 10px; }
+.tab { border: 0; background: transparent; color: var(--muted); padding: 10px 6px; border-radius: 7px; font-weight: 600; font-size: 0.95rem; line-height: 1.25; }
+.tab[aria-pressed="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.meta { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .25s; }
+
+.label { font-size: 0.8rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.prompt { font-family: var(--font-display); font-size: 2.1rem; line-height: 1.2; margin: 0; overflow-wrap: anywhere; }
+.pos { display: inline-block; font-size: 0.85rem; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 0 10px; margin-left: 8px; vertical-align: middle; font-family: var(--font-body); font-weight: 600; }
+
+label.field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+input[type="text"] {
+  font: inherit; font-size: 1.2rem; padding: 12px 14px; border-radius: 10px; border: 2px solid var(--line);
+  background: var(--bg); color: var(--fg); width: 100%; min-width: 0;
+}
+input[type="text"]:focus { border-color: var(--accent); outline: none; }
+input[disabled] { opacity: .75; }
+
+.btn { border: 2px solid var(--accent); background: var(--accent); color: var(--accent-fg); border-radius: 10px; padding: 11px 18px; font-weight: 700; }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn.small { padding: 6px 12px; font-size: 0.9rem; }
+.speak { display: inline-flex; align-items: center; gap: 8px; }
+.speak svg { width: 20px; height: 20px; fill: currentColor; }
+
+.result { border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.result.ok { background: var(--good-bg); color: var(--good); }
+.result.no { background: var(--bad-bg); color: var(--bad); }
+.result strong { font-size: 1.05rem; }
+.result .ans { color: var(--fg); font-size: 1.1rem; overflow-wrap: anywhere; }
+.typed { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 1.1rem; overflow-wrap: anywhere; color: var(--fg); }
+.typed .bad { color: var(--bad); text-decoration: underline wavy; text-underline-offset: 3px; font-weight: 700; }
+
+.big { font-family: var(--font-display); font-size: 2.6rem; font-weight: 700; font-variant-numeric: tabular-nums; margin: 0; }
+.misslist { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.misslist li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; background: var(--bg); border-radius: 8px; flex-wrap: wrap; }
+
+.words { list-style: none; margin: 0; padding: 0; }
+.words li { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.words li:first-child { border-top: 0; }
+.words .en { font-weight: 700; }
+.words .th { color: var(--muted); }
+.note { color: var(--muted); font-size: 0.9rem; margin: 0; }
+@media (max-width: 440px) {
+  h1 { font-size: 1.65rem; }
+  .prompt { font-size: 1.7rem; }
+  .card { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { .bar > i { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Dictation Drill</h1>
+    <p class="sub">ซ้อมเขียนตามคำบอก 8 คำ: ฟังเสียงอังกฤษแล้วถอดคำ หรืออ่านคำแปลแล้วเขียนเป็นอังกฤษ</p>
+  </header>
+
+  <div class="tabs" role="group" aria-label="โหมดการฝึก">
+    <button class="tab" data-mode="th2en" aria-pressed="false" type="button">ไทย → อังกฤษ<br><small>เห็นคำแปล เขียนอังกฤษ</small></button>
+    <button class="tab" data-mode="listen" aria-pressed="false" type="button">ฟัง → ถอด + แปล<br><small>ฟังเสียง เขียนอังกฤษและไทย</small></button>
+    <button class="tab" data-mode="mixed" aria-pressed="true" type="button">ผสม<br><small>สุ่มทั้งสองแบบ</small></button>
+  </div>
+
+  <section id="start" class="card">
+    <h2>พร้อมเริ่มแล้ว</h2>
+    <p class="note">เลือกโหมดด้านบน แล้วกดเริ่ม คำจะถูกสุ่มลำดับทุกครั้ง การสะกดต้องตรงทุกตัวอักษร ส่วนคำนำหน้า to / a / an จะเขียนหรือไม่เขียนก็ได้</p>
+    <div class="row">
+      <button id="startBtn" class="btn" type="button">เริ่มทดสอบ</button>
+      <button id="testVoice" class="btn ghost speak" type="button">ลองเสียง</button>
+    </div>
+    <p id="voiceNote" class="note" hidden>เบราว์เซอร์นี้ไม่มีเสียงอ่านภาษาอังกฤษ โหมดฟังอาจใช้ไม่ได้ ให้ใช้โหมดไทย → อังกฤษแทน</p>
+  </section>
+
+  <section id="quiz" class="card" hidden>
+    <div class="meta"><span id="qCount">1 / 8</span><span id="qScore">ถูก 0</span></div>
+    <div class="bar" aria-hidden="true"><i id="qBar"></i></div>
+    <div id="qBody"></div>
+    <form id="qForm" autocomplete="off" style="display:flex;flex-direction:column;gap:14px">
+      <label class="field" for="enInput"><span>เขียนเป็นภาษาอังกฤษ</span>
+        <input id="enInput" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" lang="en">
+      </label>
+      <label class="field" id="thWrap" for="thInput"><span>เขียนคำแปลภาษาไทย</span>
+        <input id="thInput" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" lang="th">
+      </label>
+      <div class="row">
+        <button id="submitBtn" class="btn" type="submit">ตรวจคำตอบ</button>
+        <button id="hintBtn" class="btn ghost" type="button">คำใบ้</button>
+      </div>
+    </form>
+    <div id="feedback" aria-live="polite"></div>
+  </section>
+
+  <section id="summary" class="card" hidden>
+    <h2>ผลการทดสอบ</h2>
+    <p class="big" id="sumScore">0 / 8</p>
+    <div id="sumBody"></div>
+    <div class="row">
+      <button id="retryMiss" class="btn" type="button">ฝึกเฉพาะคำที่พลาด</button>
+      <button id="again" class="btn ghost" type="button">เริ่มใหม่ทั้งหมด</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>คำศัพท์ทั้งหมด</h2>
+    <ul class="words" id="wordList"></ul>
+    <p class="note">กดปุ่มลำโพงเพื่อฟังออกเสียงแต่ละคำ ซ้อมฟังก่อนสอบได้</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  var WORDS = [
+    { en: "to worship", th: ["สักการะบูชา", "ศรัทธา"], pos: "กริยา" },
+    { en: "stray", th: ["เร่ร่อน", "เรร่อน", "หลง"], show: "เร่ร่อน, หลง", pos: "คุณศัพท์" },
+    { en: "holy", th: ["ศักดิ์สิทธิ์", "ศรัทธา"], show: "ศักดิ์สิทธิ์, ศรัทธา", pos: "คุณศัพท์" },
+    { en: "to please", th: ["ทำให้พอใจ"], pos: "กริยา" },
+    { en: "mud", th: ["โคลน"], pos: "คำนาม" },
+    { en: "a trail", th: ["ทาง", "รอยเท้า"], pos: "คำนาม" },
+    { en: "an icon", th: ["รูปปั้น", "ไอคอน"], show: "รูปปั้น", pos: "คำนาม" },
+    { en: "prosperity", th: ["เจริญรุ่งเรือง"], pos: "คำนาม" }
+  ];
+  WORDS.forEach(function (w) { w.show = w.show || w.th.join(", "); });
+
+  var $ = function (id) { return document.getElementById(id); };
+  var mode = "mixed", queue = [], idx = 0, score = 0, results = [], answered = false;
+
+  /* ---------- speech ---------- */
+  var synth = window.speechSynthesis, voice = null;
+  function pickVoice() {
+    if (!synth) return;
+    var vs = synth.getVoices();
+    voice = vs.filter(function (v) { return /^en[-_]US/i.test(v.lang); })[0] ||
+            vs.filter(function (v) { return /^en/i.test(v.lang); })[0] || null;
+  }
+  if (synth) { pickVoice(); if (synth.addEventListener) synth.addEventListener("voiceschanged", pickVoice); }
+  function speak(text, rate) {
+    if (!synth) return;
+    try {
+      synth.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US"; if (voice) u.voice = voice; u.rate = rate || 0.85;
+      synth.speak(u);
+    } catch (e) {}
+  }
+  if (!synth) $("voiceNote").hidden = false;
+  var SPK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>';
+  $("testVoice").innerHTML = SPK + "<span>ลองเสียง</span>";
+  $("testVoice").addEventListener("click", function () { speak("worship"); });
+
+  /* ---------- helpers ---------- */
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  function normEn(s) { return s.toLowerCase().replace(/\s+/g, " ").trim().replace(/^(to|a|an|the) /, ""); }
+  function normTh(s) { return s.replace(/\s+/g, ""); }
+  function checkTh(input, item) {
+    var acc = item.th.map(normTh);
+    var whole = normTh(input);
+    if (!whole) return false;
+    if (acc.indexOf(whole) > -1) return true;
+    return input.split(/[,،、\/]|และ/).map(normTh).filter(Boolean).some(function (p) { return acc.indexOf(p) > -1; });
+  }
+  function lcsMask(a, b) { // marks chars of a that are not part of an LCS with b
+    var n = a.length, m = b.length, d = [], i, j;
+    for (i = 0; i <= n; i++) { d.push(new Array(m + 1).fill(0)); }
+    for (i = n - 1; i >= 0; i--) for (j = m - 1; j >= 0; j--)
+      d[i][j] = a[i] === b[j] ? d[i + 1][j + 1] + 1 : Math.max(d[i + 1][j], d[i][j + 1]);
+    var bad = new Array(n).fill(true); i = 0; j = 0;
+    while (i < n && j < m) {
+      if (a[i] === b[j]) { bad[i] = false; i++; j++; }
+      else if (d[i + 1][j] >= d[i][j + 1]) i++; else j++;
+    }
+    return bad;
+  }
+  function typedNode(typed, correct) {
+    var box = document.createElement("div"); box.className = "typed";
+    var bad = lcsMask(typed, correct);
+    for (var i = 0; i < typed.length; i++) {
+      var s = document.createElement("span"); s.textContent = typed[i]; if (bad[i]) s.className = "bad"; box.appendChild(s);
+    }
+    return box;
+  }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function show(id) { ["start", "quiz", "summary"].forEach(function (s) { $(s).hidden = s !== id; }); }
+
+  /* ---------- word list ---------- */
+  var list = $("wordList");
+  WORDS.forEach(function (w) {
+    var li = el("li"); var left = el("div");
+    left.appendChild(el("div", "en", w.en)); left.appendChild(el("div", "th", w.show));
+    var b = el("button", "btn ghost small speak"); b.type = "button"; b.setAttribute("aria-label", "ฟังเสียง " + w.en);
+    b.innerHTML = SPK; b.addEventListener("click", function () { speak(w.en); });
+    li.appendChild(left); li.appendChild(b); list.appendChild(li);
+  });
+
+  /* ---------- modes ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
+    t.addEventListener("click", function () {
+      mode = t.getAttribute("data-mode");
+      Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (x) { x.setAttribute("aria-pressed", x === t ? "true" : "false"); });
+    });
+  });
+
+  function begin(items) {
+    queue = shuffle(items).map(function (w) {
+      var type = mode === "mixed" ? (Math.random() < 0.5 ? "th2en" : "listen") : mode;
+      if (type === "listen" && !synth) type = "th2en";
+      return { w: w, type: type };
+    });
+    idx = 0; score = 0; results = [];
+    show("quiz"); render();
+  }
+
+  function render() {
+    var q = queue[idx]; answered = false;
+    $("qCount").textContent = (idx + 1) + " / " + queue.length;
+    $("qScore").textContent = "ถูก " + score;
+    $("qBar").style.width = (idx / queue.length * 100) + "%";
+    var body = $("qBody"); body.textContent = "";
+    $("feedback").textContent = "";
+    $("enInput").value = ""; $("thInput").value = "";
+    $("enInput").disabled = false; $("thInput").disabled = false;
+    $("submitBtn").textContent = "ตรวจคำตอบ";
+    $("hintBtn").hidden = false;
+    var isListen = q.type === "listen";
+    $("thWrap").hidden = !isListen;
+    if (isListen) {
+      body.appendChild(el("div", "label", "ฟังแล้วเขียน"));
+      var b = el("button", "btn speak"); b.type = "button"; b.innerHTML = SPK + "<span>เล่นเสียง</span>";
+      b.addEventListener("click", function () { speak(q.w.en); $("enInput").focus(); });
+      var slow = el("button", "btn ghost speak"); slow.type = "button"; slow.innerHTML = SPK + "<span>ช้าลง</span>";
+      slow.addEventListener("click", function () { speak(q.w.en, 0.5); $("enInput").focus(); });
+      var r = el("div", "row"); r.style.marginTop = "8px"; r.appendChild(b); r.appendChild(slow); body.appendChild(r);
+      setTimeout(function () { speak(q.w.en); }, 150);
+    } else {
+      body.appendChild(el("div", "label", "คำแปลภาษาไทย"));
+      var p = el("p", "prompt", q.w.show); p.appendChild(el("span", "pos", q.w.pos)); body.appendChild(p);
+    }
+    $("enInput").focus();
+  }
+
+  $("hintBtn").addEventListener("click", function () {
+    var w = queue[idx].w, core = normEn(w.en);
+    $("feedback").textContent = "";
+    var r = el("div", "result"); r.style.background = "var(--bg)"; r.style.color = "var(--fg)";
+    r.appendChild(el("span", null, "ขึ้นต้นด้วย \"" + core[0] + "\" มี " + core.length + " ตัวอักษร"));
+    $("feedback").appendChild(r); $("enInput").focus();
+  });
+
+  $("qForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (answered) { next(); return; }
+    var q = queue[idx], typedEn = $("enInput").value.trim();
+    if (!typedEn && (q.type === "th2en" || !$("thInput").value.trim())) { $("enInput").focus(); return; }
+    answered = true;
+    var enOk = normEn(typedEn) === normEn(q.w.en);
+    var isListen = q.type === "listen";
+    var thOk = isListen ? checkTh($("thInput").value, q.w) : true;
+    var ok = enOk && thOk;
+    if (ok) score++;
+    results.push({ w: q.w, ok: ok, enOk: enOk, thOk: thOk, listen: isListen });
+    $("qScore").textContent = "ถูก " + score;
+    $("enInput").disabled = true; $("thInput").disabled = true;
+    $("hintBtn").hidden = true;
+    $("submitBtn").textContent = idx === queue.length - 1 ? "ดูผล" : "ข้อต่อไป";
+
+    var fb = $("feedback"); fb.textContent = "";
+    var r = el("div", "result " + (ok ? "ok" : "no"));
+    r.appendChild(el("strong", null, ok ? "ถูกต้อง" : "ยังไม่ถูก"));
+    if (!enOk) {
+      r.appendChild(el("span", null, "ที่คุณเขียน:"));
+      r.appendChild(typedNode(typedEn || "(ว่าง)", q.w.en));
+    }
+    var a = el("div", "ans"); a.textContent = q.w.en + "  =  " + q.w.show; r.appendChild(a);
+    if (isListen && !thOk) r.appendChild(el("span", null, "คำแปลภาษาไทยยังไม่ตรง ลองเทียบกับเฉลยด้านบน"));
+    var sb = el("button", "btn ghost small speak"); sb.type = "button"; sb.style.alignSelf = "flex-start";
+    sb.innerHTML = SPK + "<span>ฟังอีกครั้ง</span>"; sb.addEventListener("click", function () { speak(q.w.en); });
+    r.appendChild(sb);
+    fb.appendChild(r);
+    $("submitBtn").focus();
+  });
+
+  function next() {
+    if (idx < queue.length - 1) { idx++; render(); } else { finish(); }
+  }
+
+  function finish() {
+    $("qBar").style.width = "100%";
+    show("summary");
+    $("sumScore").textContent = score + " / " + queue.length;
+    var body = $("sumBody"); body.textContent = "";
+    var missed = results.filter(function (r) { return !r.ok; });
+    if (!missed.length) {
+      body.appendChild(el("p", null, "ถูกครบทุกคำ พร้อมสอบพรุ่งนี้แล้ว"));
+      $("retryMiss").hidden = true;
+    } else {
+      $("retryMiss").hidden = false;
+      body.appendChild(el("p", "note", "คำที่ต้องทบทวน"));
+      var ul = el("ul", "misslist");
+      missed.forEach(function (r) {
+        var li = el("li"); li.appendChild(el("strong", null, r.w.en)); li.appendChild(el("span", null, r.w.show)); ul.appendChild(li);
+      });
+      body.appendChild(ul);
+    }
+  }
+
+  $("startBtn").addEventListener("click", function () { begin(WORDS); });
+  $("again").addEventListener("click", function () { begin(WORDS); });
+  $("retryMiss").addEventListener("click", function () {
+    begin(results.filter(function (r) { return !r.ok; }).map(function (r) { return r.w; }));
+  });
+})();
+</script>
+
+</body></html>
