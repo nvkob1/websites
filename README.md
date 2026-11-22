@@ -7,3 +7,5 @@
 [money-tracker.html](https://nvkob1.github.io/websites/money-tracker.html)
 
 [chess_game.html](https://nvkob1.github.io/websites/chess_game.html)
+
+[Dictation_Drill.html](https://nvkob1.github.io/websites/Dictation_Drill.html)
