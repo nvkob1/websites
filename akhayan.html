@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ช่วยจำบทอาขยาน</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf6ee;--card:#fff;--ink:#2b2418;--mut:#8a7f6c;--acc:#9a3b1f;--hid:#e6dcc6;--bd:#e3d9c4;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1812;--card:#26221a;--ink:#f1e9d8;--mut:#a69b86;--acc:#f0a070;--hid:#3b352a;--bd:#3a3427;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1b1812;--card:#26221a;--ink:#f1e9d8;--mut:#a69b86;--acc:#f0a070;--hid:#3b352a;--bd:#3a3427;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font-family:'Sarabun',system-ui,sans-serif;font-size:18px;line-height:1.7}
+main{max-width:560px;margin:0 auto;padding:16px}
+h1{font-size:1.25rem;margin:4px 0 12px;color:var(--acc)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+button{font:inherit;font-size:.95rem;border:1px solid var(--bd);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer}
+button.on{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.st{font-size:.85rem;color:var(--mut);margin-bottom:6px}
+.ln{margin:2px 0}
+.seg{display:inline-block;margin-right:.4em}
+.seg.note{color:var(--mut);font-size:.85em}
+.seg.h{background:var(--hid);color:transparent;border-radius:6px;cursor:pointer;user-select:none}
+.seg.h.show{background:transparent;color:var(--acc)}
+.lbl{font-size:.9rem;color:var(--mut);margin:8px 0 4px}
+input[type=range]{width:100%}
+.big{font-size:1.15rem;min-height:3.4em}
+.ans{background:var(--hid);border-radius:10px;padding:10px;text-align:center;color:transparent;cursor:pointer}
+.ans.show{color:var(--acc);background:transparent;border:1px dashed var(--bd)}
+.ctr{text-align:center;color:var(--mut);font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+<h1>ช่วยจำบทอาขยาน</h1>
+<div class="row" id="modes"></div>
+<div class="row" id="sts"></div>
+<div id="opts"></div>
+<div id="view"></div>
+</main>
+<script>
+var P=[
+["เบื้องนั้นนฤนาถผู้|สยามินทร์","เบี่ยงพระมาลาผิน|ห่อนพ้อง","ศัตราวุธอรินทร์|(หือ ฮึ)|ฤๅถูก|องค์เอย","เพราะพระหัตถ์หากป้อง|ปัดด้วยขอทรงฯ"],
+["บัดมงคลพ่าห์ไท้|ทวารัติ","แว้งเหวี่ยงเบี่ยงเศียรสะบัด|ตกใต้","อุกคลุกพลุกเงยงัด|คอคช|เศิกแฮ","เบนบ่ายหงายแหงนให้|ถ่วงท้อทีถอย ฯ|(ฮึ ฮือ)"],
+["พลอยพล้ำเพลียกถ้าท่าน|ในรณ","บัดราชฟาดแสงพล-|พ่ายฝ้อน","พระเดชพระแสดงดล|(หือ ฮึ)|เผด็จคู่|เข็ญแฮ","ถนัดพระอังสาข้อน|ขาดด้าวโดยขวา ฯ|(ฮึ ฮือ)"],
+["อุรารานร้าวแยก|ยลสยบ","เอนพระองค์ลงทบ|ท่าวดิ้น","เหนือคอคชซอนซบ|สังเวช","วายชิวาตม์สุดสิ้น|สู่ฟ้าเสวยสวรรค์ฯ|(ฮึ ฮือ)"]
+];
+var S={mode:'read',st:0,lv:50,seed:1,li:0,rev:false};
+try{var o=JSON.parse(localStorage.getItem('akh')||'{}');for(var k in o)if(k in S)S[k]=o[k];S.rev=false}catch(e){}
+function save(){try{localStorage.setItem('akh',JSON.stringify(S))}catch(e){}}
+function rnd(i){var x=Math.sin(S.seed*9301+i*49297)*233280;return x-Math.floor(x)}
+function btns(id,items,cur,fn){var el=document.getElementById(id);el.innerHTML='';items.forEach(function(it){var b=document.createElement('button');b.textContent=it[1];if(it[0]===cur)b.className='on';b.onclick=function(){fn(it[0])};el.appendChild(b)})}
+function stanzas(){return S.st===0?[0,1,2,3]:[S.st-1]}
+function lines(){var r=[];stanzas().forEach(function(s){P[s].forEach(function(l,i){r.push({s:s,i:i,t:l})})});return r}
+function render(){
+ btns('modes',[['read','อ่าน'],['cloze','ซ่อนคำ'],['line','ท่องทีละบรรทัด']],S.mode,function(m){S.mode=m;S.li=0;S.rev=false;save();render()});
+ btns('sts',[[0,'ทั้งหมด'],[1,'บทที่ 1'],[2,'บทที่ 2'],[3,'บทที่ 3'],[4,'บทที่ 4']],S.st,function(v){S.st=v;S.li=0;S.rev=false;save();render()});
+ var o=document.getElementById('opts');o.innerHTML='';
+ if(S.mode==='cloze'){
+  o.innerHTML='<div class="lbl">ซ่อน <b id="pc">'+S.lv+'</b>% ของคำ (แตะที่ช่องเพื่อดูเฉลย)</div><input type="range" min="0" max="100" step="10" value="'+S.lv+'" id="rg"><div class="row" style="margin-top:8px"><button id="sh">สุ่มใหม่</button></div>';
+  document.getElementById('rg').oninput=function(){S.lv=+this.value;document.getElementById('pc').textContent=S.lv;save();draw()};
+  document.getElementById('sh').onclick=function(){S.seed++;draw()};
+ }
+ draw();
+}
+function draw(){
+ var v=document.getElementById('view');v.innerHTML='';
+ if(S.mode==='line'){return drawLine(v)}
+ var n=0;
+ stanzas().forEach(function(s){
+  var c=document.createElement('div');c.className='card';
+  c.innerHTML='<div class="st">บทที่ '+(s+1)+'</div>';
+  P[s].forEach(function(l){
+   var d=document.createElement('div');d.className='ln';
+   l.split('|').forEach(function(t){
+    var e=document.createElement('span');e.className='seg';e.textContent=t;
+    if(t.charAt(0)==='('){e.className+=' note'}
+    else{n++;if(S.mode==='cloze'&&rnd(n)*100<S.lv){e.className+=' h';e.onclick=function(){e.classList.toggle('show')}}}
+    d.appendChild(e);d.appendChild(document.createTextNode(' '))
+   });
+   c.appendChild(d)
+  });
+  v.appendChild(c)
+ })
+}
+function plain(t){return t.split('|').join(' ')}
+function clr(){var v=document.getElementById('view');v.innerHTML='';return v}
+function drawLine(v){
+ var L=lines();if(S.li>=L.length)S.li=0;
+ var cur=L[S.li],prev=S.li>0?L[S.li-1]:null;
+ var c=document.createElement('div');c.className='card';
+ c.innerHTML='<div class="st">บทที่ '+(cur.s+1)+' บรรทัดที่ '+(cur.i+1)+'</div><div class="lbl">บรรทัดก่อนหน้า</div><div class="big">'+(prev?plain(prev.t):'—')+'</div><div class="lbl">บรรทัดถัดไปคือ?</div>';
+ var a=document.createElement('div');a.className='ans big'+(S.rev?' show':'');a.textContent=plain(cur.t);
+ a.onclick=function(){S.rev=!S.rev;a.classList.toggle('show')};
+ c.appendChild(a);v.appendChild(c);
+ var r=document.createElement('div');r.className='row';r.style.justifyContent='center';
+ var b1=document.createElement('button');b1.textContent='◀ ก่อนหน้า';b1.onclick=function(){S.li=(S.li-1+L.length)%L.length;S.rev=false;drawLine(clr())};
+ var b2=document.createElement('button');b2.textContent='ถัดไป ▶';b2.className='on';b2.onclick=function(){S.li=(S.li+1)%L.length;S.rev=false;drawLine(clr())};
+ r.appendChild(b1);r.appendChild(b2);v.appendChild(r);
+ var p=document.createElement('div');p.className='ctr';p.textContent=(S.li+1)+' / '+L.length+' · แตะกรอบเพื่อดูเฉลย';v.appendChild(p);
+}
+render();
+</script>
+</body>
+</html>
